@@ -1,0 +1,27 @@
+= Mroonga\n(('note:と'))\nPGroonga
+
+: subtitle
+   初心者向け情報
+: author
+   須藤功平
+: institution
+   クリアコード
+: content-source
+   MySQLとPostgreSQLと日本語全文検索
+: date
+   2016-06-09
+: allotted-time
+   20m
+: theme
+   groonga
+
+= Mroonga・PGroonga
+
+  * Mroonga（むるんが）
+    * (('wait'))MySQLに\n
+      高速日本語全文検索機能を追加する\n
+      プロダクト
+  * PGroonga（ぴーじーるんが）
+    * (('wait'))PostgreSQLに\n
+      高速日本語全文検索機能を追加する\n
+      プロダクト
