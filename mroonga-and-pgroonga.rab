@@ -35,6 +35,17 @@
     * (('wait'))機能が欲しい
     * (('wait'))トランザクションも欲しい
 
+= 速い？
+
+  # image
+  # src = http://slide.rabbit-shocker.org/authors/kou/mysql-and-postgresql-and-japanese-full-text-search/mroonga-and-pgroonga.pdf
+  # page = 6
+  # relative_height = 80
+
+(('tag:center'))
+(('note:詳細は前回の資料を参照'))\n
+(('note:http://slide.rabbit-shocker.org/authors/kou/mysql-and-postgresql-and-japanese-full-text-search/'))
+
 = Mroongaのモード
 
   * ストレージモード
@@ -88,6 +99,84 @@
     * ストレージのみ
     * インデックスには効かない\n
       (('note:ロールバックしたらインデックスの再構築が必要'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= 使い分け
+
+  * (('wait'))できればストレージモード
+  * (('wait'))ムリならラッパーモード
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= ストレージモードの条件
+
+  * (('wait'))(({NULL}))がないこと
+    * あるならテーブルをわけるか\n
+      ラッパーモード
+  * (('wait'))トランザクションを使わない
+    * 例：追記のみ
+    * 例：同時に更新されない
+    * 例：スレーブにする（後述）
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= オススメの使い方
+
+  * (('wait'))テーブル定義
+    * デフォルトで使う\n
+      (('note:（デフォルトでいい感じになるようにしてある）'))
+    * カスタマイズは慣れてからで十分
+  * (('wait'))検索
+    * (({IN BOOLEAN MODE}))を使う(('note:（いつもの検索）'))
+    * (({*D+}))プラグマを使う(('note:（デフォルトAND）'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= テーブル定義
+
+  # coderay sql
+
+  CREATE TABLE items (
+    title TEXT,
+    FULLTEXT INDEX (title)
+    -- ↑COMMENTでカスタマイズしない
+  ) ENGINE=Mroonga
+    DEFAULT CHARSET=utf8mb4;
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= 検索
+
+  # coderay sql
+
+  SELECT * FROM items
+    WHERE
+      MATCH(title)
+          -- ↓*D+プラグマ
+      AGAINST('*D+ 激安 人気'
+              IN BOOLEAN MODE);
+         -- ↑IN BOOLEAN MODE
 
 == スライドプロパティ
 
