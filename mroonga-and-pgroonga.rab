@@ -25,3 +25,72 @@
     * (('wait'))PostgreSQLに\n
       高速日本語全文検索機能を追加する\n
       プロダクト
+
+= 使いどころ
+
+  * Mroonga
+    * (('wait'))速さが欲しい
+    * (('wait'))トランザクションはいらない
+  * PGroonga
+    * (('wait'))機能が欲しい
+    * (('wait'))トランザクションも欲しい
+
+= Mroongaのモード
+
+  * ストレージモード
+    * (('wait'))ストレージとインデックスに\n
+      Groongaを使う
+  * ラッパーモード
+    * (('wait'))ストレージは\n
+      既存ストレージエンジンをラップ
+    * (('wait'))(('note:全文検索・位置情報'))インデックスだけ\n
+      Groongaを使う
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= Mroongaのモード
+
+  # image
+  # src = images/mroonga-mode.svg
+  # relative_height = 100
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= ストレージモード
+
+  * (('wait'))全文検索が速い
+  * (('wait'))それ以外の条件も速い\n
+    (('note:数値の比較とか'))
+  * (('wait'))挿入も更新も削除も速い
+  * (('wait'))ソートも速い
+  * (('wait'))トランザクションはない
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= ラッパーモード
+
+  * (('wait'))全文検索が速い
+  * (('wait'))全文検索以外はラップ対象の\n
+    ストレージエンジンに依存
+  * (('wait'))トランザクション
+    * ストレージのみ
+    * インデックスには効かない\n
+      (('note:ロールバックしたらインデックスの再構築が必要'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
