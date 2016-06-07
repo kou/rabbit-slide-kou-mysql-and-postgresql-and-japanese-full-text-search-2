@@ -123,7 +123,7 @@
     * あるならテーブルをわけるか\n
       ラッパーモード
   * (('wait'))トランザクションを使わない
-    * 例：追記のみ
+    * 例：追記のみ（ログとか）
     * 例：同時に更新されない
     * 例：スレーブにする（後述）
 
@@ -183,3 +183,238 @@
 : groonga-product
 
    mroonga
+
+= トランザクション欲しい！
+
+  * (('wait'))レプリケーションで対応可能
+  * (('wait'))構成
+    * マスター：InnoDB
+    * スレーブ：Mroonga
+    * MySQLはマスターとスレーブで異なるストレージエンジンを使える！
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= トランザクションと\nレプリケーション
+
+  # image
+  # src = images/mroonga-transaction.svg
+  # relative_width = 100
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順1
+
+マスターmy.cnf:
+
+  [mysqld]
+  log-bin=mysql-bin
+  server-id=1
+
+(('note:バイナリーログを有効にしてサーバーIDを指定'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順2
+
+スレーブmy.cnf:
+
+  [mysqld]
+  server-id=2
+
+(('note:サーバーIDを指定'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順3
+
+マスター:
+
+  # coderay sql
+  CREATE USER 'repl'@'%' IDENTIFIED BY '1qazXSW@';
+  GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+
+(('note:レプリケーション用ユーザーを作成'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順4
+
+マスター:
+
+  # coderay sql
+  SHOW MASTER STATUS\G
+  --              File: mysql-bin.000001
+  --          Position: 855
+  --      Binlog_Do_DB: 
+  --  Binlog_Ignore_DB: 
+  -- Executed_Gtid_Set: 
+
+(('note:バイナリーログの情報を確認'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順5
+
+スレーブ:
+
+  # coderay sql
+  CHANGE MASTER TO
+    MASTER_HOST='192.168.0.9',
+    MASTER_LOG_FILE='mysql-bin.000001',
+    MASTER_LOG_POS=855;
+  START SLAVE USER='repl'
+              PASSWORD='1qazXSW@';
+
+(('note:レプリケーション開始'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順6
+
+マスター:
+
+  # coderay sql
+  CREATE TABLE items (
+    title text
+  ) DEFAULT CHARSET=utf8mb4;
+
+(('note:マスターでテーブル作成'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順7
+
+スレーブ:
+
+  # coderay sql
+  ALTER TABLE items
+    ENGINE=Mroonga,
+    ADD FULLTEXT INDEX (title);
+
+(('note:スレーブだけMroongaに変更'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順8
+
+マスター:
+
+  # coderay sql
+  INSERT INTO items
+    VALUES ('データベース管理システム');
+
+(('note:マスターでデータ登録'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= レプリケーション手順9
+
+スレーブ:
+
+  # coderay sql
+  SELECT * FROM items
+    WHERE MATCH(title)
+          AGAINST('*D+ データ 管理'
+                  IN BOOLEAN MODE);
+  -- +--------------------------------------+
+  -- | title                                |
+  -- +--------------------------------------+
+  -- | データベース管理システム             |
+  -- +--------------------------------------+
+
+(('note:スレーブで全文検索'))
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= まとめ
+
+  * (('wait'))できればストレージモード
+  * (('wait'))テーブル定義：デフォルトでOK
+  * (('wait'))検索：(({IN BOOLEAN MODE}))と(({*D+}))
+  * (('wait'))トランザクション：スレーブ
+
+== スライドプロパティ
+
+: groonga-product
+
+   mroonga
+
+= PGroongaのいいところ
+
+  * (('wait'))検索条件を柔軟に指定可能
+    * MySQL：拡張は(({AGAINST()}))内で頑張る
+    * PostgreSQL：演算子を追加可能
+  * (('wait'))トランザクション対応
+    * ロールバックも効く
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= オススメの使い方
+
+  * ...
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= おしらせ
+
+(('tag:center'))
+(('tag:margin-bottom * 3'))
+「Groongaで学ぶ全文検索」
+
+  * (('wait'))全文検索について学ぶ会
+  * (('wait'))内容は参加者が知りたいこと
+  * (('wait'))ほぼ隔週金曜夜開催
+    * 次回は6月17日\n
+      (('note:https://groonga.doorkeeper.jp/events/45556'))
