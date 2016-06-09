@@ -136,8 +136,7 @@
 = オススメの使い方
 
   * (('wait'))テーブル定義
-    * デフォルトで使う\n
-      (('note:（デフォルトでいい感じになるようにしてある）'))
+    * デフォルトで使う(('note:（いい感じになる）'))
     * カスタマイズは慣れてからで十分
   * (('wait'))検索
     * (({IN BOOLEAN MODE}))を使う(('note:（いつもの検索）'))
@@ -399,7 +398,108 @@
 
 = オススメの使い方
 
-  * ...
+  * (('wait'))テーブル定義
+    * プライマリキーを指定する
+  * (('wait'))インデックス定義
+    * デフォルトで使う(('note:（いい感じになる）'))
+  * (('wait'))検索
+    * (({search_path}))設定→(({@@}))演算子を使う
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= テーブル定義
+
+  # coderay sql
+
+  CREATE TABLE items (
+    id integer PRIMARY KEY,
+    -- ↑はスコアー取得時に必要
+    title text
+  );
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= インデックス定義
+
+  # coderay sql
+
+  CREATE INDEX pgroonga_items_index
+            ON items
+         USING pgroonga (id, title);
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= (({search_path}))を設定
+
+  # coderay sql
+
+  -- 現在のセッションのみ有効
+  SET search_path TO "$user",public,pgroonga,pg_catalog;
+  -- user1ユーザーのみ有効
+  ALTER ROLE user1
+    SET search_path TO "$user",public,pgroonga,pg_catalog;
+  -- db1データベースでは永続的に有効
+  ALTER DATABASE db1
+    SET search_path TO "$user",public,pgroonga,pg_catalog;
+
+(('tag:center'))
+pg_catalogの前にpgroongaを入れる
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= なぜ設定する必要があるか
+
+(('tag:center'))
+PostgreSQLに(({@@}))があるから
+
+  * (('wait'))組み込みの(({@@}))より\n
+    PGroongaの(({@@}))を優先したい
+  * (('wait'))優先しないと\n
+    インデックススキャンと\n
+    シーケンシャルスキャンで\n
+    結果が異なる
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= (({@@}))演算子で検索
+
+  # coderay sql
+
+  SELECT *,
+         pgroonga.score(items) AS score
+    FROM items
+    WHERE title @@ '激安 人気'
+    ORDER BY score DESC;
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= 一歩進んだ使い方
+
+入力補完
 
 == スライドプロパティ
 
