@@ -189,7 +189,8 @@
   * (('wait'))構成
     * マスター：InnoDB
     * スレーブ：Mroonga
-    * MySQLはマスターとスレーブで異なるストレージエンジンを使える！
+    * MySQLはマスターとスレーブで\n
+      違うストレージエンジンを使える！
 
 == スライドプロパティ
 
@@ -232,6 +233,7 @@
   [mysqld]
   server-id=2
 
+(('tag:center'))
 (('note:サーバーIDを指定'))
 
 == スライドプロパティ
@@ -248,6 +250,7 @@
   CREATE USER 'repl'@'%' IDENTIFIED BY '1qazXSW@';
   GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
 
+(('tag:center'))
 (('note:レプリケーション用ユーザーを作成'))
 
 == スライドプロパティ
@@ -268,6 +271,7 @@
   --  Binlog_Ignore_DB: 
   -- Executed_Gtid_Set: 
 
+(('tag:center'))
 (('note:バイナリーログの情報を確認'))
 
 == スライドプロパティ
@@ -288,6 +292,7 @@
   START SLAVE USER='repl'
               PASSWORD='1qazXSW@';
 
+(('tag:center'))
 (('note:レプリケーション開始'))
 
 == スライドプロパティ
@@ -305,6 +310,7 @@
     title text
   ) DEFAULT CHARSET=utf8mb4;
 
+(('tag:center'))
 (('note:マスターでテーブル作成'))
 
 == スライドプロパティ
@@ -322,6 +328,7 @@
     ENGINE=Mroonga,
     ADD FULLTEXT INDEX (title);
 
+(('tag:center'))
 (('note:スレーブだけMroongaに変更'))
 
 == スライドプロパティ
@@ -338,6 +345,7 @@
   INSERT INTO items
     VALUES ('データベース管理システム');
 
+(('tag:center'))
 (('note:マスターでデータ登録'))
 
 == スライドプロパティ
@@ -361,6 +369,7 @@
   -- | データベース管理システム             |
   -- +--------------------------------------+
 
+(('tag:center'))
 (('note:スレーブで全文検索'))
 
 == スライドプロパティ
@@ -417,9 +426,11 @@
 
   CREATE TABLE items (
     id integer PRIMARY KEY,
-    -- ↑はスコアー取得時に必要
     title text
   );
+
+(('tag:center'))
+(('note:スコアー取得時に必要なのでプライマリーキーを作る'))
 
 == スライドプロパティ
 
@@ -434,6 +445,9 @@
   CREATE INDEX pgroonga_items_index
             ON items
          USING pgroonga (id, title);
+
+(('tag:center'))
+(('note:プライマリーキーをインデックス対象にする'))
 
 == スライドプロパティ
 
@@ -455,7 +469,7 @@
     SET search_path TO "$user",public,pgroonga,pg_catalog;
 
 (('tag:center'))
-pg_catalogの前にpgroongaを入れる
+(('note:pg_catalogの前にpgroongaを入れる'))
 
 == スライドプロパティ
 
@@ -497,9 +511,10 @@ PostgreSQLに(({@@}))があるから
 
    pgroonga
 
-= 一歩進んだ使い方
+= 独自演算子がうれしい例
 
-入力補完
+入力補完\n
+(('note:https://github.com/pgroonga/pgroonga/tree/master/examples/completion'))
 
 == スライドプロパティ
 
@@ -507,7 +522,171 @@ PostgreSQLに(({@@}))があるから
 
    pgroonga
 
-= おしらせ
+= テーブル作成
+
+  # coderay sql
+
+  CREATE TABLE dictionary (
+    term text,
+    readings text[], -- 配列
+    english text
+  );
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= データ
+
+  # coderay sql
+
+  INSERT INTO dictionary VALUES
+  ('・',
+   ARRAY['ナカグロ', 'ナカポチ'],
+   '(n) middle dot ...'),
+  -- (...),
+  ('踵',
+   ARRAY['カカト', 'キビス', 'クビス'],
+   '(n) (uk) heel ...');
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= インデックス定義
+
+  # coderay sql
+
+  CREATE INDEX pgroonga_index
+    ON dictionary
+    USING pgroonga (
+      -- ↓前方一致・前方一致RK検索用
+      term     pgroonga.text_term_search_ops_v2,
+      -- ↓配列に対する前方一致・前方一致RK検索用
+      readings pgroonga.text_array_term_search_ops_v2);
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= 検索：独自演算子+OR
+
+  # coderay sql
+
+  SELECT term, readings, english
+    FROM dictionary
+   WHERE term &^ 'nak' OR
+         -- ↑前方一致検索
+         readings &^~> 'nak'
+         -- ↑前方一致RK検索
+   ORDER BY term LIMIT 10;
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= 結果例：nak
+
+(('tag:center'))
+前方一致RK検索でヒット
+
+  # _
+       term     |     readings         |      english
+  --------------+----------------------+-------------------
+   ・           | {ナカグロ,ナカポチ}  | (n) middle dot ...
+   ＮａＫ       | {ナック}             | (n) NaK (sodiu...
+   なくても良い | {ナクテモヨイ        | (exp) (1) (uk) ...
+   ...          |     ...              | ...
+  (10 rows)
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= 結果例：なか
+
+(('tag:center'))
+前方一致RK検索でヒット
+
+  # _
+       term     |     readings         |      english
+  --------------+----------------------+-------------------
+   ・           | {ナカグロ,ナカポチ}  | (n) middle dot ...
+   泣かされる   | {ナカサレル}         | (v1,vi) (1) to ...
+   泣かせる     | {ナカセル}           | (v1,vt) (1) to ...
+   ...          |     ...              | ...
+  (10 rows)
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= 結果例：中
+
+(('tag:center'))
+前方一致RK検索でヒット
+
+  # _
+       term     |     readings         |      english
+  --------------+----------------------+-------------------
+   中           | {ウチ,ジュウ,チュウ} | (n,adj-no) (1) ...
+   中々         | {ナカナカ}           | (adv,adj-na) ..
+   中２         | {チュウニ}           | (n) second-year
+   ...          |     ...              | ...
+  (10 rows)
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= レプリケーション
+
+  * (('wait'))PostgreSQL標準機能：×
+    * プラグインはWALを使えない
+  * (('wait'))pglogical：○\n
+    (('note:詳細：http://www.clear-code.com/blog/2016/3/22.html'))
+  * (('wait'))9.6：たぶん○
+    * プラグインでもWALを使える
+    * 正式リリースまでに対応したい
+
+= まとめ
+
+  * (('wait'))トランザクション対応
+  * (('wait'))テーブル定義：プライマリキー
+  * (('wait'))インデックス定義：デフォルト
+  * (('wait'))検索：(({search_path}))と(({@@}))
+  * (('wait'))レプリケーション：pglogical
+
+== スライドプロパティ
+
+: groonga-product
+
+   pgroonga
+
+= 相談場所
+
+  * メーリングリスト
+    * groonga-dev
+  * チャット
+    * https://gitter.im/groonga/ja
+  * Twitter：@groonga
+  * 勉強会
+
+= 勉強会
 
 (('tag:center'))
 (('tag:margin-bottom * 3'))
